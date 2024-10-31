@@ -2,7 +2,7 @@ import requests
 
 from rest_framework import viewsets
 from rest_framework.response import Response
-from .models import SpyCat, Mission
+from .models import SpyCat, Mission, Target
 from .serializers import SpyCatSerializer, MissionSerializer
 from rest_framework.decorators import action
 from django.shortcuts import get_object_or_404
@@ -26,9 +26,26 @@ class MissionViewSet(viewsets.ModelViewSet):
     queryset = Mission.objects.all()
     serializer_class = MissionSerializer
 
-    def destroy(self, request, *args, **kwargs):
-        mission = self.get_object()
-        if mission.cat is not None:
-            return Response({"error": "Cannot delete an assigned mission"}, status=400)
-        return super().destroy(request, *args, **kwargs)
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
 
+    @action(detail=True, methods=['post'])
+    def complete_target(self, request, pk=None, target_pk=None):
+        mission = self.get_object()
+        target = get_object_or_404(Target, id=target_pk, mission=mission)
+
+        if target.is_complete:
+            return Response({"error": "Target is already completed"}, status=400)
+
+        target.is_complete = True
+        target.save()
+
+        if all(target.is_complete for target in mission.targets.all()):
+            mission.is_complete = True
+            mission.save()
+
+        return Response({"message": "Target marked as complete"}, status=200)

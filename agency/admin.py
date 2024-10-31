@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from agency.models import SpyCat, Mission, Target
+from .models import SpyCat, Mission, Target
 
 # Register your models here.
 
