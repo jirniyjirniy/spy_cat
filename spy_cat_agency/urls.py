@@ -4,7 +4,7 @@ from rest_framework.routers import DefaultRouter
 from agency.views import SpyCatViewSet, MissionViewSet
 
 router = DefaultRouter()
-router.register(r'spycats', SpyCatViewSet)
+router.register(r'spy-cats', SpyCatViewSet)
 router.register(r'missions', MissionViewSet)
 
 urlpatterns = [
